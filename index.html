@@ -106,7 +106,8 @@ function App(){
   const remain=T>=0&&!isNaN(T)&&total!==""?T-done:null;
   const hrs=(daily&&remain!==null)?remain/daily*24:null;
   let finish="–";
-  const start=startStr?new Date(startStr):null;
+  const parseStart=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(v||"");return m?new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],0,0):new Date()};
+  const start=parseStart(startStr);
   if(hrs!==null&&start&&!isNaN(start)){
     if(hrs<=0) finish="已完工";
     else{const f=calcFinish(start,hrs);if(f)finish=fmtDT(f)}
