@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#081321">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="生產完工計算機">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>生產完工計算機</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#000;--card:#1a2433;--line:#5fb4e8;--tx:#fff;--mut:#9fb2c6;--key:#26364d}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:#000;color:#fff;font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;-webkit-tap-highlight-color:transparent}
+#root{max-width:480px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:24px;margin:8px 0 2px}.sub{color:var(--mut);font-size:12px;letter-spacing:1.5px}
+.badge{display:inline-block;margin:10px 0 4px;padding:4px 12px;border:1px solid var(--line);border-radius:99px;color:var(--line);font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:14px}
+.card h2{font-size:16px;margin:0 0 12px}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
+input{display:block;width:100%;min-width:0;max-width:100%;height:54px;margin:0;font-size:18px;line-height:24px;padding:0 13px;border-radius:12px;border:1px solid var(--line);background:#0b121c;color:#fff;font-family:inherit;-webkit-appearance:none;appearance:none}
+input[type=datetime-local]{display:flex;align-items:center;justify-content:center;text-align:center;line-height:52px;padding:0;color-scheme:dark}
+input[type=datetime-local]::-webkit-date-and-time-value{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;height:52px;min-height:0;margin:0;padding:0}
+input[type=datetime-local]::-webkit-datetime-edit{display:flex;align-items:center;justify-content:center;padding:0;margin:0;line-height:52px}
+.note{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.5}
+button{font-family:inherit;border:0;color:#fff;cursor:pointer;touch-action:manipulation}
+.btn{width:100%;margin-top:10px;padding:14px;border-radius:12px;background:var(--key);border:1px solid var(--line);font-size:15px}
+.row{display:flex;gap:10px;align-items:stretch}
+.disp{flex:1;background:#0b121c;border:1px solid var(--line);border-radius:12px;font-size:30px;padding:10px 14px;text-align:right;display:flex;align-items:center;justify-content:flex-end;min-height:64px;word-break:break-all}
+.add{width:112px;background:var(--line);color:#00121f;font-size:22px;font-weight:700;border-radius:12px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.key{height:58px;border-radius:14px;background:var(--key);font-size:22px;border:1px solid #3b5273}
+.key:active{background:#3b5273}
+.err{color:#ff8a8a;font-size:13px;margin-top:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat{background:#0b121c;border-radius:12px;padding:12px;border:1px solid #2c3f58}
+.stat b{display:block;font-size:22px;margin-top:4px}.stat span{font-size:12px;color:var(--mut)}
+.rec{display:flex;align-items:center;gap:10px;padding:10px;margin-top:8px;background:#0b121c;border-radius:12px;border:1px solid #2c3f58}
+.rec .m{flex:1;min-width:0}.rec .m b{font-size:18px}.rec .m div{font-size:12px;color:var(--mut)}
+.del{padding:10px 14px;border-radius:10px;background:#3a2330;color:#ff9a9a;border:1px solid #7a3b4d;font-size:14px}
+.res{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #2c3f58}
+.res:last-child{border:0}.res span{color:var(--mut);font-size:14px}.res b{font-size:20px;text-align:right}
+.fold{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;font-size:16px;font-weight:600;padding:0}
+.danger{width:100%;margin-top:22px;padding:16px;border-radius:14px;background:#d62828;font-size:17px;font-weight:700}
+.clr{background:#3a2330;border-color:#7a3b4d;color:#ff9a9a}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useRef } = React;
+const p2 = n => String(n).padStart(2, '0');
+const WD = ['日','一','二','三','四','五','六'];
+const HR = 3600000, DAY = 24 * HR, SHIFT = 8 * HR;
+
+const nowStr = () => { const d = new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+const fmtNum = n => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const fmtRec = d => `${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+const parseWall = s => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(s || ''); return m ? Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5]) : null; };
+
+// 以「本地牆上時間」運算（UTC 毫秒表示牆上時間，避免夏令時間誤差）。
+// 平移 -8 小時後：生產 = 週一 00:00 ~ 週日 00:00（getUTCDay 1..6），停機 = 週日（0）。
+function finishWall(startWall, hours) {
+  let t = startWall - SHIFT;
+  let day = new Date(t).getUTCDay();
+  if (day === 0) { // 停機中 → 順延至週一 08:00
+    t = Math.floor(t / DAY) * DAY + DAY;
+  }
+  let R = hours;
+  for (let guard = 0; guard < 100000; guard++) {
+    const d = new Date(t).getUTCDay();             // 1..6
+    const tod = t - Math.floor(t / DAY) * DAY;
+    const avail = (7 - d) * DAY - tod;             // 距離週日 08:00 的可生產時間
+    if (R <= avail) return t + R + SHIFT;          // 恰在週日 08:00 完工視為當週完成
+    R -= avail;
+    t = t + avail + DAY;                           // 跨越週日 08:00，扣除完整 24 小時停機
+  }
+  return null;
+}
+const fmtFinish = w => { const d = new Date(w); return `${p2(d.getUTCMonth()+1)}/${p2(d.getUTCDate())}（${WD[d.getUTCDay()]}）${p2(d.getUTCHours())}:${p2(d.getUTCMinutes())}`; };
+
+function App() {
+  const [total, setTotal] = useState('');
+  const [speed, setSpeed] = useState('');
+  const [strips, setStrips] = useState('');
+  const [start, setStart] = useState(nowStr());
+  const [cur, setCur] = useState('');
+  const [records, setRecords] = useState([]);
+  const [err, setErr] = useState('');
+  const [open, setOpen] = useState(false);
+  const idRef = useRef(1);   // 唯一 ID
+  const noRef = useRef(1);   // 紀錄編號
+
+  const press = d => { setErr(''); setCur(c => { if (c === '0' || c === '') return d === '0' ? '' : d; return c.length >= 12 ? c : c + d; }); };
+  const add = () => {
+    const v = parseInt(cur, 10);
+    if (!cur || !Number.isFinite(v) || v <= 0) { setErr('請先輸入大於 0 的生產數量。'); return; }
+    setRecords(r => [...r, { id: idRef.current++, no: noRef.current++, qty: v, at: fmtRec(new Date()) }]);
+    setCur(''); setErr('');
+  };
+  const delRec = id => setRecords(r => r.filter(x => x.id !== id));
+  const clearRecords = () => { setRecords([]); setCur(''); setErr(''); noRef.current = 1; };
+  const clearAll = () => { setTotal(''); setSpeed(''); setStrips(''); setCur(''); setRecords([]); setErr(''); noRef.current = 1; setStart(nowStr()); setOpen(false); };
+
+  const produced = records.reduce((s, r) => s + r.qty, 0);
+  const T = parseFloat(total), S = parseFloat(speed), N = parseFloat(strips);
+  const okDaily = S > 0 && N > 0;
+  const daily = okDaily ? S * 40 / N : null;
+  const remain = T > 0 ? T - produced : null;
+  const remHours = daily && remain !== null ? Math.max(remain, 0) / daily * 24 : null;
+  const sw = parseWall(start);
+  let finish = '–';
+  if (remHours !== null && sw !== null) {
+    if (remain <= 0) finish = '已完工';
+    else { const f = finishWall(sw, remHours); finish = f === null ? '–' : fmtFinish(f); }
+  }
+  const dash = v => v === null ? '–' : fmtNum(v);
+  const numIn = (v, set) => e => set(e.target.value.replace(/[^0-9.]/g, ''));
+
+  return (
+    <div>
+      <h1>生產完工計算機</h1>
+      <div className="sub">PRODUCTION COMPLETION CALCULATOR</div>
+      <div className="badge">● 即時運算</div>
+
+      <div className="card">
+        <h2>01｜基本輸入</h2>
+        <label>總成品數量</label>
+        <input inputMode="numeric" value={total} onChange={numIn(total, setTotal)} placeholder="" />
+        <label>機台轉速</label>
+        <input inputMode="decimal" value={speed} onChange={numIn(speed, setSpeed)} />
+        <label>條數</label>
+        <input inputMode="numeric" value={strips} onChange={numIn(strips, setStrips)} />
+        <label>起算日期與時間</label>
+        <input type="datetime-local" value={start} onChange={e => setStart(e.target.value)} />
+        <button className="btn" onClick={() => setStart(nowStr())}>重設為現在</button>
+        <div className="note">自動帶入目前時間，可依實際開工時間修改。</div>
+      </div>
+
+      <div className="card">
+        <h2>02｜已生產數量紀錄</h2>
+        <div className="row">
+          <div className="disp">{cur === '' ? '0' : cur}</div>
+          <button className="add" onClick={add}>新增</button>
+        </div>
+        {err && <div className="err">{err}</div>}
+        <div className="pad">
+          {['1','2','3','4','5','6','7','8','9'].map(d => <button key={d} className="key" onClick={() => press(d)}>{d}</button>)}
+          <button className="key" onClick={() => { setCur(''); setErr(''); }}>清空</button>
+          <button className="key" onClick={() => press('0')}>0</button>
+          <button className="key" onClick={() => setCur(c => c.slice(0, -1))}>刪除</button>
+        </div>
+        <div className="stats">
+          <div className="stat"><span>累計已生產數量</span><b>{fmtNum(produced)}</b></div>
+          <div className="stat"><span>生產紀錄筆數</span><b>{records.length}</b></div>
+        </div>
+        <div style={{marginTop:6}}>
+          {records.map(r => (
+            <div className="rec" key={r.id}>
+              <div className="m"><div>第 {r.no} 筆</div><b>{fmtNum(r.qty)}</b><div>{r.at}</div></div>
+              <button className="del" onClick={() => delRec(r.id)}>刪除</button>
+            </div>
+          ))}
+        </div>
+        <button className="btn clr" onClick={clearRecords}>清除全部生產紀錄</button>
+      </div>
+
+      <div className="card">
+        <h2>03｜生產計算結果</h2>
+        <div className="res"><span>每日產量</span><b>{dash(daily)}</b></div>
+        <div className="res"><span>剩餘數量</span><b>{dash(remain)}</b></div>
+        <div className="res"><span>剩餘運轉時間</span><b>{remHours === null ? '–' : fmtNum(remHours) + ' 小時'}</b></div>
+        <div className="res"><span>預計完工日期時間</span><b>{finish}</b></div>
+      </div>
+
+      <div className="card">
+        <button className="fold" onClick={() => setOpen(o => !o)}><span>04｜生產時間規則</span><span>{open ? '▲' : '▼'}</span></button>
+        {open && (
+          <div style={{marginTop:12,lineHeight:1.8,fontSize:14}}>
+            <div><b>每週生產：</b><br />星期一 08:00 至星期日 08:00</div>
+            <div style={{marginTop:8}}><b>每週停機：</b><br />星期日 08:00 至星期一 08:00</div>
+            <div className="note">只計算實際生產時間。停機期間不計算；停機期間起算則順延至星期一 08:00。跨週自動扣除停機時間。</div>
+          </div>
+        )}
+      </div>
+
+      <button className="danger" onClick={clearAll}>一鍵清除所有資料</button>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
