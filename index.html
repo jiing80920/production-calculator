@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081321"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="生產完工計算機">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
+<title>生產完工計算機</title>
+<style>
+:root{color-scheme:dark;--bg:#07111e;--panel:#111d2d;--line:#45617e;--blue:#a9d9ff;--muted:#9aacc1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f1f5f9;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:620px;margin:auto;padding:18px 14px calc(28px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:15px}
+header{text-align:center;padding:10px 0}h1{font-size:25px;margin:0 0 7px}.sub{font-size:10px;letter-spacing:1.5px;color:#9aa9bb}.live{display:inline-block;margin-top:12px;padding:6px 13px;border:1px solid #39739b;border-radius:30px;color:#a9d9ff;font-size:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px}.title{font-size:17px;font-weight:750;margin-bottom:13px}
+.field{display:flex;flex-direction:column;gap:7px;margin-top:13px}.muted{color:var(--muted);font-size:12px}
+input{width:100%;min-width:0;background:#091523;border:1px solid #405b77;border-radius:8px;padding:12px;color:white;font-size:16px;outline:none}
+input:focus{border-color:#78b9ed}button{border:0;border-radius:9px;cursor:pointer;font-weight:650;color:white;min-height:44px}
+.outline{background:#14263a;border:1px solid #567b9d;color:#c9e5ff;padding:10px 13px}.blue{background:#2675a8;padding:12px}.danger{background:#9e343c;padding:14px;width:100%;font-size:15px}
+.addarea{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:9px;align-items:stretch;margin-top:10px}.display{background:#091523;border:1px solid #6386a7;border-radius:9px;padding:11px;min-width:0}.number{font-size:27px;font-weight:750;color:var(--blue);overflow-wrap:anywhere;min-height:34px;margin-top:4px}.add{background:#2675a8;font-size:17px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.key{background:#23364c;border:1px solid #415d78;min-height:49px;font-size:19px}.key.special{font-size:14px;background:#34485e}.key.del{background:#69404a}
+.notice{color:#f5bd82;font-size:12px;min-height:17px;margin-top:7px}
+.stats,.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}.stat,.result{background:#0a1727;border:1px solid #344c67;border-radius:9px;padding:12px;min-width:0}.value{font-size:23px;font-weight:750;color:var(--blue);overflow-wrap:anywhere;margin-top:7px}.result .value{font-size:21px}.result.finish .value{font-size:17px}
+hr{border:0;border-top:1px solid #30465d;margin:15px 0}.records{display:flex;flex-direction:column;gap:8px;margin-top:10px}.record{background:#0a1727;border:1px solid #344c67;border-radius:9px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}.delbtn{background:#713a43;padding:8px 11px;font-size:12px;min-height:36px}
+.rulehead{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;background:none;padding:0;font-size:17px}.rulebody{padding-top:15px;line-height:1.9;color:#c7d7e8}.rulebody strong{color:white}.empty{text-align:center;color:#74869a;padding:18px 0}
+@media(min-width:520px){main{padding-top:28px}}
+</style></head>
+<body><main id="app">
+<header><h1>生產完工計算機</h1><div class="sub">PRODUCTION COMPLETION CALCULATOR</div><div class="live">● 即時運算</div></header>
+<section class="panel"><div class="title">01｜基本輸入</div>
+<div class="field"><label class="muted" for="total">總成品數量</label><input id="total" type="number" inputmode="decimal" min="0" placeholder="請輸入總成品數量"></div>
+<div class="field"><label class="muted" for="speed">機台轉速</label><input id="speed" type="number" inputmode="decimal" min="0" placeholder="請輸入機台轉速"></div>
+<div class="field"><label class="muted" for="strips">條數</label><input id="strips" type="number" inputmode="decimal" min="0" placeholder="請輸入條數"></div>
+<div class="field"><label class="muted" for="start">起算日期與時間</label><input id="start" type="datetime-local"><button id="resetNow" class="outline">重設為現在</button><div class="muted">自動帶入目前時間，可依實際開工時間修改。</div></div></section>
+<section class="panel"><div class="title">02｜已生產數量紀錄</div>
+<div class="muted">本次生產數量｜自訂數字鍵盤</div>
+<div class="addarea"><div class="display"><div class="muted">目前輸入數量</div><div id="current" class="number">0</div></div><button id="add" class="add">新增</button></div>
+<div id="keys" class="keys"><button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button><button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button><button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button><button class="key special" data-k="clear">清空</button><button class="key" data-k="0">0</button><button class="key del" data-k="delete">刪除</button></div>
+<div id="notice" class="notice" role="status"></div>
+<div class="stats"><div class="stat"><div class="muted">累計已生產數量</div><div id="produced" class="value">0</div></div><div class="stat"><div class="muted">生產紀錄筆數</div><div id="count" class="value">0</div></div></div>
+<hr><div style="font-weight:650">生產紀錄明細</div><div id="records" class="records"><div class="empty">尚無生產紀錄</div></div>
+<button id="clearRecords" class="outline" style="width:100%;margin-top:14px">清除全部生產紀錄</button></section>
+<section class="panel"><div class="title">03｜生產計算結果</div><div class="results">
+<div class="result"><div class="muted">每日產量</div><div id="daily" class="value">–</div><div class="muted">數量／日</div></div>
+<div class="result"><div class="muted">剩餘數量</div><div id="remaining" class="value">–</div><div class="muted">件</div></div>
+<div class="result"><div class="muted">剩餘運轉時間</div><div id="hours" class="value">–</div><div class="muted">小時</div></div>
+<div class="result finish"><div class="muted">預計完工日期時間</div><div id="finish" class="value">–</div><div class="muted">依實際生產時段計算</div></div></div></section>
+<section class="panel"><button id="ruleToggle" class="rulehead" aria-expanded="false"><span>04｜生產時間規則</span><span id="arrow" style="color:#a9d9ff">⌄</span></button>
+<div id="ruleBody" class="rulebody" hidden><strong>每週生產</strong><br>星期一 08:00 至星期日 08:00<br><br><strong>每週停機</strong><br>星期日 08:00 至星期一 08:00<hr>只計算實際生產時間。停機期間不計算；停機期間起算則順延至星期一 08:00。跨週自動扣除停機時間。</div></section>
+<button id="clearAll" class="danger">一鍵清除所有資料</button>
+<div class="sub" style="text-align:center">PRODUCTION COMPLETION CALCULATOR</div></main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),KEY='production-completion-pwa-v1';
+let records=[],input='',nextId=1;
+const fmt=n=>Number(n).toLocaleString('zh-TW',{maximumFractionDigits:2});
+const pad=n=>String(n).padStart(2,'0');
+function localInput(d=new Date()){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');['total','speed','strips','start'].forEach(k=>{if(s[k]!==undefined)$(k).value=s[k]});records=Array.isArray(s.records)?s.records:[];nextId=Math.max(0,...records.map(r=>r.id||0))+1}catch(e){}if(!$('start').value)$('start').value=localInput()}
+function save(){localStorage.setItem(KEY,JSON.stringify({total:$('total').value,speed:$('speed').value,strips:$('strips').value,start:$('start').value,records}))}
+function totalMade(){return records.reduce((a,r)=>a+r.qty,0)}
+function renderRecords(){$('produced').textContent=fmt(totalMade());$('count').textContent=records.length.toLocaleString('zh-TW');const box=$('records');box.replaceChildren();if(!records.length){const e=document.createElement('div');e.className='empty';e.textContent='尚無生產紀錄';box.append(e)}else records.forEach((r,i)=>{const row=document.createElement('div');row.className='record';const left=document.createElement('div');const name=document.createElement('div');name.style.color='#a9d9ff';name.textContent=`第 ${i+1} 筆`;const qty=document.createElement('div');qty.style.cssText='font-size:18px;font-weight:750;margin-top:4px';qty.textContent=fmt(r.qty);const time=document.createElement('div');time.className='muted';time.style.marginTop='4px';time.textContent=r.time;left.append(name,qty,time);const b=document.createElement('button');b.className='delbtn';b.textContent='刪除';b.onclick=()=>{records=records.filter(x=>x.id!==r.id);renderRecords();calculate();save()};row.append(left,b);box.append(row)})}
+function add(){const q=Number(input);if(!input||!Number.isFinite(q)||q<=0){$('notice').textContent='請先輸入大於 0 的生產數量。';return}records.push({id:nextId++,qty:q,time:localInput().replace('T',' ')});input='';$('current').textContent='0';$('notice').textContent='';renderRecords();calculate();save()}
+function clearRecords(){records=[];nextId=1;input='';$('current').textContent='0';$('notice').textContent='';renderRecords();calculate();save()}
+function normalize(d){let t=new Date(d),day=t.getDay(),m=t.getHours()*60+t.getMinutes()+t.getSeconds()/60;if((day===0&&m>=480)||(day===1&&m<480)){if(day===0)t.setDate(t.getDate()+1);t.setHours(8,0,0,0)}return t}
+function addProductionHours(date,h){let t=normalize(date),left=h,guard=0;while(left>1e-9&&guard++<100000){let day=t.getDay(),days=(7-day)%7;let b=new Date(t);b.setDate(b.getDate()+days);b.setHours(8,0,0,0);if(b<=t)b.setDate(b.getDate()+7);let available=(b-t)/3600000;if(left<=available+1e-9){t=new Date(t.getTime()+left*3600000);left=0}else{left-=available;t=new Date(b);t.setDate(t.getDate()+1);t.setHours(8,0,0,0)}}return t}
+function calculate(){const tr=$('total').value,sr=$('speed').value,nr=$('strips').value,start=$('start').value;const total=Number(tr),speed=Number(sr),strips=Number(nr),d=new Date(start);const valid=tr!==''&&sr!==''&&nr!==''&&Number.isFinite(total)&&Number.isFinite(speed)&&Number.isFinite(strips)&&total>=0&&speed>0&&strips>0&&start!==''&&!isNaN(d);if(!valid){['daily','remaining','hours','finish'].forEach(k=>$(k).textContent='–');return}const daily=speed*40/strips,remaining=total-totalMade(),hours=Math.max(0,remaining)/daily*24,finish=addProductionHours(d,hours);$('daily').textContent=fmt(daily);$('remaining').textContent=fmt(remaining);$('hours').textContent=fmt(hours)+' 小時';$('finish').textContent=`${finish.getMonth()+1}/${finish.getDate()}（${'日一二三四五六'[finish.getDay()]}） ${pad(finish.getHours())}:${pad(finish.getMinutes())}`}
+['total','speed','strips','start'].forEach(k=>{$(k).addEventListener('input',()=>{calculate();save()});$(k).addEventListener('change',()=>{calculate();save()})});
+$('resetNow').onclick=()=>{$('start').value=localInput();calculate();save()};
+$('keys').onclick=e=>{const b=e.target.closest('button[data-k]');if(!b)return;let k=b.dataset.k;if(k==='clear')input='';else if(k==='delete')input=input.slice(0,-1);else if(input.length<15)input+=k;$('current').textContent=input?Number(input).toLocaleString('zh-TW'):'0';$('notice').textContent=''};
+$('add').onclick=add;$('clearRecords').onclick=clearRecords;
+$('ruleToggle').onclick=()=>{const open=$('ruleBody').hidden;$('ruleBody').hidden=!open;$('ruleToggle').setAttribute('aria-expanded',String(open));$('arrow').textContent=open?'⌃':'⌄'};
+$('clearAll').onclick=()=>{$('total').value='';$('speed').value='';$('strips').value='';$('start').value=localInput();records=[];nextId=1;input='';$('current').textContent='0';$('notice').textContent='';$('ruleBody').hidden=true;$('ruleToggle').setAttribute('aria-expanded','false');$('arrow').textContent='⌄';renderRecords();calculate();save()};
+load();renderRecords();calculate();
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+})();
+</script></body></html>
