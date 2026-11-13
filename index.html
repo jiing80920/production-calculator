@@ -82,6 +82,8 @@ const toInput=d=>`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${
 const fmtN=n=>n.toLocaleString("en-US",{maximumFractionDigits:2});
 function App(){
   const [total,setTotal]=useState("");
+  const [beam,setBeam]=useState("");
+  const [shrink,setShrink]=useState("");
   const [rpm,setRpm]=useState("");
   const [strips,setStrips]=useState("");
   const [startStr,setStartStr]=useState(()=>toInput(new Date()));
@@ -98,7 +100,8 @@ function App(){
     setCur("");setErr("");
   };
   const clearRecs=()=>{setRecs([]);setCur("");setErr("");idRef.current=1};
-  const clearAll=()=>{setTotal("");setRpm("");setStrips("");setStartStr(toInput(new Date()));clearRecs();setOpen(false)};
+  const calcTotal=(b,s)=>{const B=parseFloat(b),S=parseFloat(s);if(b!==""&&s!==""&&B>0&&S>=0&&S<100)setTotal(String(Math.round(B*(1-S/100)*100)/100))};
+  const clearAll=()=>{setBeam("");setShrink("");setTotal("");setRpm("");setStrips("");setStartStr(toInput(new Date()));clearRecs();setOpen(false)};
   const done=recs.reduce((a,r)=>a+r.qty,0);
   const T=parseFloat(total),R=parseFloat(rpm),S=parseFloat(strips);
   const okIn=T>0&&R>0&&S>0;
@@ -118,7 +121,10 @@ function App(){
     h("h1",null,"生產完工計算機"),h("div",{className:"en"},"PRODUCTION COMPLETION CALCULATOR"),
     h("span",{className:"live"},"● 即時運算"),
     h("div",{className:"card"},h("h2",null,"01｜基本輸入"),
+      h("label",null,"盤頭長"),numIn(beam,v=>{setBeam(v);calcTotal(v,shrink)}),
+      h("label",null,"織縮（%）"),numIn(shrink,v=>{setShrink(v);calcTotal(beam,v)}),
       h("label",null,"總成品數量"),numIn(total,setTotal),
+      h("div",{className:"note"},"選填。盤頭長與織縮都填寫後，自動換算總成品數量＝盤頭長 × (1 − 織縮%)；也可直接輸入總成品數量。"),
       h("label",null,"機台轉速"),numIn(rpm,setRpm),
       h("label",null,"條數"),numIn(strips,setStrips),
       h("label",null,"起算日期與時間"),
