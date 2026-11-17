@@ -100,6 +100,7 @@ function App(){
   const [beamOpen,setBeamOpen]=useState(false);
   const [rpm,setRpm]=useState("");
   const [strips,setStrips]=useState("");
+  const [eff,setEff]=useState("");
   const [startStr,setStartStr]=useState(()=>toInput(new Date()));
   const [cur,setCur]=useState("");
   const [recs,setRecs]=useState([]);
@@ -123,11 +124,12 @@ function App(){
   };
   const clearRecs=()=>{setRecs([]);setCur("");setErr("");idRef.current=1};
   const calcTotal=(b,s)=>{const B=parseFloat(b),S=parseFloat(s);if(b!==""&&s!==""&&B>0&&S>=0&&S<100)setTotal(String(Math.round(B*(1-S/100)*100)/100))};
-  const clearAll=()=>{setBeam("");setShrink("");setTotal("");setRpm("");setStrips("");setStartStr(toInput(new Date()));clearRecs();setOpen(false);setBeamOpen(false);setSch(savedSch);setSchOpen(false);setSchMsg("")};
+  const clearAll=()=>{setEff("");setBeam("");setShrink("");setTotal("");setRpm("");setStrips("");setStartStr(toInput(new Date()));clearRecs();setOpen(false);setBeamOpen(false);setSch(savedSch);setSchOpen(false);setSchMsg("")};
   const done=recs.reduce((a,r)=>a+r.qty,0);
   const T=parseFloat(total),R=parseFloat(rpm),S=parseFloat(strips);
   const okIn=T>0&&R>0&&S>0;
-  const daily=okIn?R*40/S:null;
+  const effV=eff===""?100:parseFloat(eff);
+  const daily=(okIn&&effV>0)?R*40/S*effV/100:null;
   const remain=T>=0&&!isNaN(T)&&total!==""?T-done:null;
   const hrs=(daily&&remain!==null)?remain/daily*24:null;
   let finish="–";
@@ -152,6 +154,7 @@ function App(){
       h("label",null,"總成品數量"),numIn(total,setTotal),
       h("label",null,"機台轉速"),numIn(rpm,setRpm),
       h("label",null,"條數"),numIn(strips,setStrips),
+      h("label",null,"效率（%）"),numIn(eff,setEff),
       h("label",null,"起算日期與時間"),
       h("input",{type:"datetime-local",value:startStr,onChange:e=>setStartStr(e.target.value)}),
       h("button",{className:"wide",onClick:()=>setStartStr(toInput(new Date()))},"重設為現在"),
